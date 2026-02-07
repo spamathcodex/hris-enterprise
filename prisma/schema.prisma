@@ -1,0 +1,42 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Model Karyawan (Lebih Lengkap)
+model Employee {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  password_hash String
+  name          String
+  role          Role     @default(EMPLOYEE)
+  created_at    DateTime @default(now())
+  
+  // Relasi: Satu karyawan punya banyak log absensi
+  attendanceLogs AttendanceLog[]
+}
+
+// Model Absensi
+model AttendanceLog {
+  id          Int       @id @default(autoincrement())
+  date        DateTime  @default(now()) // Tipe Date saja
+  clock_in    DateTime
+  clock_out   DateTime? // Tanda tanya artinya Boleh Kosong (Nullable)
+  status      String    @default("present")
+  
+  // Relasi: Absensi ini milik siapa?
+  employee_id Int
+  employee    Employee  @relation(fields: [employee_id], references: [id])
+}
+
+// Enum: Pilihan terbatas untuk menghindari typo
+enum Role {
+  EMPLOYEE
+  ADMIN
+}

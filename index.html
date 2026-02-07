@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>HRIS Enterprise</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #eef2f3;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 350px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        button.absen-btn {
+            background: #28a745;
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #error-msg {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="login-screen" class="card">
+        <h2>Login Karyawan</h2>
+        <input type="email" id="email" placeholder="Email (budi@maju.com)" value="budi@maju.com">
+        <input type="password" id="password" placeholder="Password (rahasia)" value="rahasia">
+        <button onclick="login()">Masuk</button>
+        <div id="error-msg"></div>
+    </div>
+
+    <div id="dashboard-screen" class="card hidden" style="width: 500px;">
+        <h2>Dashboard Karyawan</h2>
+        <p>Halo, <b id="user-name">User</b></p>
+
+        <a id="btn-admin" href="admin.html"
+            style="display:none; background:#6f42c1; color:white; text-decoration:none; padding:10px; border-radius:5px; margin-bottom:15px; font-weight:bold;">
+            🕵️‍♂️ MENU KHUSUS HRD
+        </a>
+        <br><br>
+    
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button class="absen-btn" onclick="kirimAbsen('clock-in')">🌞 MASUK</button>
+            <button class="absen-btn" onclick="kirimAbsen('clock-out')" style="background: #dc3545;">🌙 PULANG</button>
+        </div>
+    
+        <p id="absen-status" style="margin-top:15px; font-weight:bold; height: 20px;"></p>
+    
+        <h3>Riwayat Kehadiran (5 Terakhir)</h3>
+        <table border="1" style="width:100%; border-collapse: collapse; font-size: 14px;">
+            <thead>
+                <tr style="background: #f4f4f4;">
+                    <th>Tanggal</th>
+                    <th>Masuk</th>
+                    <th>Pulang</th>
+                </tr>
+            </thead>
+            <tbody id="history-table">
+            </tbody>
+        </table>
+    
+        <button onclick="logout()" style="background:#6c757d; margin-top:20px;">Logout</button>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('hris_token'); // Cek apakah ada token tersimpan
+
+        // Cek sesi saat web dibuka
+        if (token) showDashboard(localStorage.getItem('hris_name'));
+
+        function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.token) {
+                            // SIMPAN TOKEN DI BROWSER
+                            token = data.token;
+                            localStorage.setItem('hris_token', token);
+                            localStorage.setItem('hris_name', data.name);
+                            localStorage.setItem('hris_role', data.role);
+                            showDashboard(data.name);
+                        } else {
+                            document.getElementById('error-msg').innerText = data.error;
+                        }
+                    }).catch(err => {
+                        console.error('Error:', err);
+                    });
+            } catch (err) {
+                console.error("ERROR LOGIN:", err.message); // Cetak error detail di Terminal
+                // Kirim JSON, JANGAN send teks biasa
+                res.status(500).json({ error: "Gagal Login: " + err.message });
+            }
+        }
+
+        function kirimAbsen(type) {
+            // type bisa 'clock-in' atau 'clock-out'
+            fetch(`http://localhost:3000/api/attendance/${type}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    const statusEl = document.getElementById('absen-status');
+                    if (data.error) {
+                        statusEl.innerText = "❌ " + data.error;
+                        statusEl.style.color = "red";
+                    } else {
+                        statusEl.innerText = "✅ " + data.message;
+                        statusEl.style.color = "green";
+                        loadHistory(); // Refresh tabel setelah absen
+                    }
+                });
+        }
+
+        function loadHistory() {
+                fetch('http://localhost:3000/api/attendance/history', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        const tbody = document.getElementById('history-table');
+                        tbody.innerHTML = ''; // Kosongkan tabel dulu
+
+                        data.forEach(log => {
+                            // Format Jam agar cantik
+                            const masuk = log.clock_in ? new Date(log.clock_in).toLocaleTimeString() : '-';
+                            const pulang = log.clock_out ? new Date(log.clock_out).toLocaleTimeString() : '-';
+                            const tanggal = new Date(log.date).toLocaleDateString();
+
+                            tbody.innerHTML += `
+                        <tr>
+                            <td style="padding:5px;">${tanggal}</td>
+                            <td style="padding:5px;">${masuk}</td>
+                            <td style="padding:5px;">${pulang}</td>
+                        </tr>
+                    `;
+                        });
+                    });
+            }
+
+        function clockIn() {
+            fetch('http://localhost:3000/api/clock-in', {
+                method: 'POST',
+                // KIRIM TOKEN SEBAGAI BUKTI OTENTIKASI
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        alert("Sesi habis, silakan login lagi");
+                        logout();
+                    } else {
+                        document.getElementById('absen-status').innerText = "✅ " + data.message;
+                        document.getElementById('absen-status').style.color = "green";
+                    }
+                });
+        }
+
+        function showDashboard(name, role) {
+            if (!role) role = localStorage.getItem('hris_role');
+
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            document.getElementById('user-name').innerText = name;
+            document.getElementById('error-msg').innerText = "";
+
+            // Kita ubah role jadi huruf besar semua biar aman, lalu cek
+            if (role && role.toUpperCase() === 'ADMIN') {
+                document.getElementById('btn-admin').style.display = 'inline-block';
+            } else {
+                document.getElementById('btn-admin').style.display = 'none';
+            }
+
+            loadHistory();
+        }
+
+        function logout() {
+            localStorage.clear();
+            location.reload();
+        }
+    </script>
+</body>
+
+</html>
