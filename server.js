@@ -24,9 +24,9 @@ app.get('/', (req, res) => {
 // Ganti app.post manual dengan ini:
 app.use('/api', authRoutes); 
 // Penjelasan: 
-// - /api + /login     -> http://localhost:3000/api/login
-// - /api + /register  -> http://localhost:3000/api/register
-// - /api + /employees -> http://localhost:3000/api/employees
+// - /api + /login     -> https://hris-enterprise-production.up.railway.app//api/login
+// - /api + /register  -> https://hris-enterprise-production.up.railway.app//api/register
+// - /api + /employees -> https://hris-enterprise-production.up.railway.app//api/employees
 
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/leave', leaveRoutes);

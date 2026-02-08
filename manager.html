@@ -82,7 +82,7 @@
     }
     
     function loadInbox() {
-      fetch('http://localhost:3000/api/leave/inbox', {
+      fetch('https://hris-enterprise-production.up.railway.app//api/leave/inbox', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
         .then(res => res.json())
@@ -109,7 +109,7 @@
     }
 
     function decide(id, status) {
-      fetch('http://localhost:3000/api/leave/approve', {
+      fetch('https://hris-enterprise-production.up.railway.app//api/leave/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ requestId: id, status })
