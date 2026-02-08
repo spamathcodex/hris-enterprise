@@ -12,6 +12,12 @@ const payrollRoutes = require('./routes/payrollRoutes');
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(__dirname));
+
+// Tentukan rute utama (Pintu Depan)
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
 
 // --- DAFTARKAN ROUTES ---
 
