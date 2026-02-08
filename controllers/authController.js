@@ -46,7 +46,7 @@ exports.register = async (req, res) => {
             data: {
                 name: name,
                 email: email,
-                password_hash: hashedPassword,
+                password: hashedPassword,
                 role: role || 'EMPLOYEE' // Default jadi Employee kalau tidak diisi
             }
         });
@@ -77,7 +77,7 @@ exports.login = async (req, res) => {
         if (!employee) return res.status(400).json({ error: 'Email atau Password salah' });
 
         // 4. Cek Password
-        const validPass = await bcrypt.compare(password, employee.password_hash);
+        const validPass = await bcrypt.compare(password, employee.password);
         if (!validPass) return res.status(400).json({ error: 'Email atau Password salah' });
 
         // 5. Buat Token JWT
