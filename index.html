@@ -203,7 +203,7 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
-            fetch('https://hris-enterprise-production.up.railway.app//api/login', {
+            fetch('https://hris-enterprise-production.up.railway.app/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
@@ -271,7 +271,7 @@
 
         // FUNGSI LOAD SLIP GAJI
         function loadPayroll() {
-            fetch('https://hris-enterprise-production.up.railway.app//api/payroll/my-history', {
+            fetch('https://hris-enterprise-production.up.railway.app/api/payroll/my-history', {
                 headers: { 'Authorization': 'Bearer ' + token }
             })
                 .then(res => res.json())
@@ -321,7 +321,7 @@
         }
 
         function loadLeaveHistory() {
-                fetch('https://hris-enterprise-production.up.railway.app//api/leave/my-history', {
+                fetch('https://hris-enterprise-production.up.railway.app/api/leave/my-history', {
                     headers: { 'Authorization': 'Bearer ' + token }
                 })
                     .then(res => res.json())
@@ -356,7 +356,7 @@
 
         // --- FUNGSI ABSENSI (SAMA SEPERTI SEBELUMNYA) ---
         function kirimAbsen(type) {
-            fetch(`https://hris-enterprise-production.up.railway.app//api/attendance/${type}`, {
+            fetch(`https://hris-enterprise-production.up.railway.app/api/attendance/${type}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
             })
@@ -375,7 +375,7 @@
         }
 
         function loadHistory() {
-            fetch('https://hris-enterprise-production.up.railway.app//api/attendance/history', {
+            fetch('https://hris-enterprise-production.up.railway.app/api/attendance/history', {
                 headers: { 'Authorization': 'Bearer ' + token }
             })
             .then(res => res.json())
@@ -431,7 +431,7 @@
 
             statusEl.innerText = "Mengirim...";
 
-            fetch('https://hris-enterprise-production.up.railway.app//api/leave/request', {
+            fetch('https://hris-enterprise-production.up.railway.app/api/leave/request', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                 body: JSON.stringify({ start_date, end_date, reason })
@@ -459,7 +459,7 @@
                 const btn = event.target;
                 btn.innerText = "⏳...";
 
-                fetch(`https://hris-enterprise-production.up.railway.app//api/payroll/${payrollId}/download`, {
+                fetch(`https://hris-enterprise-production.up.railway.app/api/payroll/${payrollId}/download`, {
                     method: 'GET',
                     headers: { 'Authorization': 'Bearer ' + token }
                 })

@@ -358,7 +358,7 @@
 
     // 2. LOAD ABSENSI (DENGAN EMPTY STATE)
     function loadAttendance() {
-      fetch('https://hris-enterprise-production.up.railway.app//api/attendance/daily-report', {
+      fetch('https://hris-enterprise-production.up.railway.app/api/attendance/daily-report', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
         .then(res => res.json())
@@ -395,7 +395,7 @@
 
     // 3. LOAD KARYAWAN (FITUR BARU!)
     function loadEmployees() {
-      fetch('https://hris-enterprise-production.up.railway.app//api/employees', { // Endpoint baru tadi
+      fetch('https://hris-enterprise-production.up.railway.app/api/employees', { // Endpoint baru tadi
         headers: { 'Authorization': 'Bearer ' + token }
       })
         .then(res => res.json())
@@ -431,7 +431,7 @@
 
       statusEl.innerText = "⏳ Sedang menyimpan...";
 
-      fetch('https://hris-enterprise-production.up.railway.app//api/register', {
+      fetch('https://hris-enterprise-production.up.railway.app/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, role })
@@ -461,7 +461,7 @@
       const statusEl = document.getElementById('payroll-status');
 
       statusEl.innerText = "⏳ Sedang menghitung...";
-      fetch('https://hris-enterprise-production.up.railway.app//api/payroll/generate', {
+      fetch('https://hris-enterprise-production.up.railway.app/api/payroll/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ month: parseInt(month), year: parseInt(year) })
