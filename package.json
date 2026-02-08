@@ -27,5 +27,8 @@
   "devDependencies": {
     "@prisma/client": "^5.10.2",
     "prisma": "^5.10.2"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   }
 }
