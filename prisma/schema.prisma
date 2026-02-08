@@ -9,34 +9,89 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Model Karyawan (Lebih Lengkap)
+// --- MODEL KARYAWAN (HIERARKI & CUTI) ---
 model Employee {
   id            Int      @id @default(autoincrement())
   email         String   @unique
   password_hash String
   name          String
   role          Role     @default(EMPLOYEE)
-  created_at    DateTime @default(now())
   
-  // Relasi: Satu karyawan punya banyak log absensi
+  // 1. Fitur Hirarki (Self-Relation)
+  manager_id    Int?     // Boleh kosong (kalau dia Big Boss)
+  manager       Employee?  @relation("ManagerSubordinates", fields: [manager_id], references: [id])
+  subordinates  Employee[] @relation("ManagerSubordinates")
+
+  // 2. Fitur Cuti
+  leave_quota   Int      @default(12) // Jatah cuti default 12 hari
+  leaveRequests LeaveRequest[]
+  
+  // 3. Fitur Absensi
   attendanceLogs AttendanceLog[]
+
+  // Timestamp (Cukup satu baris saja di sini)
+  created_at    DateTime @default(now())
+
+  // DATA GAJI
+  base_salary     Float    @default(5000000) // Gaji Pokok (Default UMR)
+  daily_allowance Float    @default(100000)  // Tunjangan makan/transport per hari hadir
+  ptkp_status     String   @default("TK/0")  // TK/0, K/0, K/1, dst.
+
+  payrolls         Payroll[]
 }
 
-// Model Absensi
+// TABEL SLIP GAJI
+model Payroll {
+  id              Int      @id @default(autoincrement())
+  month           Int      // 1-12
+  year            Int
+  basic_salary    Float
+  allowance_total Float    // Total tunjangan harian x jumlah hadir
+  deductions      Float    @default(0)
+  tax_amount      Float    // PPh 21 (YANG KITA CARI!)
+  net_salary      Float    // Gaji bersih setelah pajak/potongan
+  status          String   @default("DRAFT") // DRAFT, PAID
+  
+  employee_id     Int
+  employee        Employee @relation(fields: [employee_id], references: [id])
+  
+  created_at      DateTime @default(now())
+}
+
+// --- MODEL ABSENSI ---
 model AttendanceLog {
   id          Int       @id @default(autoincrement())
-  date        DateTime  @default(now()) // Tipe Date saja
+  date        DateTime  @default(now())
   clock_in    DateTime
-  clock_out   DateTime? // Tanda tanya artinya Boleh Kosong (Nullable)
+  clock_out   DateTime?
   status      String    @default("present")
   
-  // Relasi: Absensi ini milik siapa?
   employee_id Int
   employee    Employee  @relation(fields: [employee_id], references: [id])
 }
 
-// Enum: Pilihan terbatas untuk menghindari typo
+// --- MODEL PERMINTAAN CUTI (BARU) ---
+model LeaveRequest {
+  id           Int          @id @default(autoincrement())
+  start_date   DateTime
+  end_date     DateTime
+  reason       String
+  status       LeaveStatus  @default(PENDING)
+  
+  employee_id  Int
+  employee     Employee     @relation(fields: [employee_id], references: [id])
+  
+  created_at   DateTime     @default(now())
+}
+
+// --- ENUMS (PILIHAN) ---
 enum Role {
   EMPLOYEE
   ADMIN
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

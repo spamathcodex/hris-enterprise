@@ -98,3 +98,22 @@ exports.login = async (req, res) => {
         res.status(500).json({ error: 'Terjadi kesalahan pada server.' });
     }
 };
+
+// FUNGSI BARU: AMBIL SEMUA KARYAWAN (UNTUK ADMIN)
+exports.getAllEmployees = async (req, res) => {
+    try {
+        const employees = await prisma.employee.findMany({
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                base_salary: true // Sekalian kita tampilkan gajinya biar Admin tau
+            },
+            orderBy: { name: 'asc' }
+        });
+        res.json(employees);
+    } catch (err) {
+        res.status(500).json({ error: "Gagal mengambil data karyawan" });
+    }
+};

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Manager Approval Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f8f9fa;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #2c3e50;
+      border-bottom: 3px solid #f39c12;
+      padding-bottom: 10px;
+    }
+
+    .request-card {
+      border: 1px solid #eee;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .info b {
+      color: #2980b9;
+    }
+
+    .actions button {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-left: 5px;
+    }
+
+    .btn-approve {
+      background: #27ae60;
+      color: white;
+    }
+
+    .btn-reject {
+      background: #e74c3c;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>📥 Inbox Approval Cuti</h1>
+    <p>Halo Manager, berikut adalah daftar permohonan cuti bawahan Anda:</p>
+    <div id="inbox-list">Loading...</div>
+    <br>
+    <a href="index.html">← Kembali ke Dashboard Saya</a>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('hris_token');
+    const role = localStorage.getItem('hris_role');
+
+    // --- PROTEKSI ---
+    // Kita izinkan ADMIN atau MANAGER (jika nanti ada role khusus Manager)
+    if (!token || role !== 'ADMIN') {
+      alert("⚠️ Akses Ditolak. Anda bukan Manager.");
+      window.location.href = 'index.html';
+    }
+    
+    function loadInbox() {
+      fetch('http://localhost:3000/api/leave/inbox', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+        .then(res => res.json())
+        .then(data => {
+          const list = document.getElementById('inbox-list');
+          list.innerHTML = data.length === 0 ? '<p>Tidak ada permohonan tertunda.</p>' : '';
+
+          data.forEach(req => {
+            list.innerHTML += `
+                        <div class="request-card">
+                            <div class="info">
+                                <b>${req.employee.name}</b> mengajukan cuti<br>
+                                <small>${new Date(req.start_date).toLocaleDateString()} s/d ${new Date(req.end_date).toLocaleDateString()}</small><br>
+                                <i>"${req.reason}"</i>
+                            </div>
+                            <div class="actions">
+                                <button class="btn-approve" onclick="decide(${req.id}, 'APPROVED')">Setuju</button>
+                                <button class="btn-reject" onclick="decide(${req.id}, 'REJECTED')">Tolak</button>
+                            </div>
+                        </div>
+                    `;
+          });
+        });
+    }
+
+    function decide(id, status) {
+      fetch('http://localhost:3000/api/leave/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ requestId: id, status })
+      })
+        .then(() => {
+          alert('Keputusan berhasil disimpan!');
+          loadInbox();
+        });
+    }
+
+    loadInbox();
+  </script>
+</body>
+
+</html>
